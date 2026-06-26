@@ -1,0 +1,123 @@
+I want you to create a learning tracker that logins in through Indian Phone number a PIN then It must asks to select a role Management, Zonal Coordinator, Trainer or Student
+when they select Management
+it must show them a dashboard which has following components
+Register: new Student- ask them name, mail id, course, timing, centre name , phone number
+new Zonal Coordinator- name and zone, new Trainer- name , zone, centre name,new Course -syllabus, new Location-centre name, zone , zonal coordinator. 
+View student progress:
+By course (all locations, all trainers).
+By trainer (all students under each trainer).
+View trainer progress (how many students, how many courses handled, completion status).
+View zonal coordinator progress (zones managed, centres, trainer performance, student outcomes).
+All these subdivisions should have a back button which navigates back to the management dashboard
+The exsisting data of zones , zonal coordinators and trainers are as below
+NORTH ZONE
+(Chennai SSA, Thiruvallur, Thiruvannamalai – North Tamil Nadu)
+Zonal Coordinator: Mr. Bhuvaneshan
+Trainer Team:
+* Mr. Ramkumar
+* Ms. Kavitha
+* Ms. Dhanalakshmi
+2️⃣ NORTH-EAST ZONE (Chennai – Education & Employment)
+Zonal Coordinator: Mr. Rajesh Kannan
+Trainer Team:
+* Mr. Arunraj
+* Mr. Bharani
+* Ms. Dhoniya
+* Mr. Ranjith Kumar
+* Ms. Seetha
+* Ms. Sridevi
+* Mr. Ventharasu
+* Mr. Ayappan
+* Ms. Devika
+* Mr. Aravindhan
+* Mr. Gurusamy
+* Mr. Yogesh
+* Mr. Vikram
+* Mr. Ramesh
+3️⃣ WEST ZONE
+(Salem, Dharmapuri, Coimbatore – Western Tamil Nadu)
+Zonal Coordinator: Mr. Gowrishankar
+Trainer Team:
+* Mrs. Nithya
+* Mr. Nikash
+4️⃣ SOUTH ZONE
+(Madurai – South Tamil Nadu)
+Zonal Coordinator: Ms. Ilakkiya
+Trainer Team:
+* Mr. Praveen Kumar
+* Mr. Ramar
+
+CENTRAL / EASTERN ZONE
+(Pudukottai, Trichy, Tanjore – Central-East Tamil Nadu)
+Zonal Coordinator: Ms. Mathavi
+Trainer Team:
+* Ms. Seethalakshmi
+* Mr. Muthukumar
+6️⃣ NORTH-WEST ZONE
+(Krishnagiri – North-West Tamil Nadu)
+Zonal Coordinator: Mr. Sathish Kumar
+Trainer Team:
+* Mr. Akshay
+* Ms. Radha
+* Mr. Dinesh Kumar
+7️⃣ ANDHRA PRADESH ZONE
+(Separate Inter-State Zone)
+Zonal Coordinator: Mr. Palanisamy
+Trainer Team:
+* Mr. Nagababu
+* Ms. Praveelika
+* Ms. Dharani
+8️⃣ SOUTH-EAST ZONE (Virudhunagar & Tirunelveli)
+Zonal Coordinator: Mr. Sriharan
+Trainer Team:
+* Ms. Kaviya
+* Ms. Subhalakshmi
+* Mr. Yovanraj
+
+
+
+
+
+In the main Dashboard if they click Trainer it  must have a dashboard which has two options View Student Progress and Update Student Rating . The Update Student Progress must show only the students under that particular trainer and it must also have like a autocomplete if one or two letters is spelled it must show that sudent name , then There is only one course that a student will be assigned we have a unit selection under it if that is done the chapter selection then module selection everything must come automatically i will give course hierarchy and the trainer must be able to submit a Rating of
+
+Totally Dependent
+
+Physical Prompting
+
+Verbal Prompting
+
+Clueing
+
+Independent
+and give submit display a success message and keep a back button near submit which redirects to dashboard page. The View Student Progress Page must Display all the Students names under that Particular Trainer in a List like Manner and it must also have a autocomplete search for selecting the students and the ratings must be updated here , if the rating is updated it must update here too and also please provide a back button when you open a particular student progress and the whole student listing page must also have a back button
+Phone number must be indian , Course Hierarchy Web accessibility testing course, under Unit 1: Introduction to Accessibility
+, under that unit Chapter 1: Understanding Digital Accessibility, under chapter 1 Overview of digital accessibility
+• Types of disabilities
+• Importance of accessible digital content
+three modules
+
+
+
+
+
+In the main dashboard if they click Zonal Coordinator it must take them to the zonal coordinator dashboard in which 
+Can see only their zone:
+Students progress (all students in centres under that zone).
+Trainers progress (all trainers mapped to that zone).
+Input performance updates for students in their zone.- There is only one course that a student will be assigned we have a unit selection under it if that is done the chapter selection then module selection everything must come automatically i will give course hierarchy and the trainer must be able to submit a Rating of
+
+Totally Dependent
+
+Physical Prompting
+
+Verbal Prompting
+
+Clueing
+
+Independent
+and give submit display a success message and keep a back button near submit which redirects to dashboard page. 
+must have proper back buttons taking them to dashboard 
+
+
+In the main dashboard if they click the students name it must View course details for each enrolled course (syllabus, duration, trainer, location).
+See completed vs remaining ...

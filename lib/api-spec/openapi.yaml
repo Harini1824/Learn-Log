@@ -1,0 +1,1544 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: Learning Tracker API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication
+  - name: zones
+    description: Zone management
+  - name: coordinators
+    description: Zonal coordinators
+  - name: trainers
+    description: Trainer management
+  - name: students
+    description: Student management
+  - name: courses
+    description: Course hierarchy
+  - name: locations
+    description: Centre/location management
+  - name: progress
+    description: Student progress and ratings
+  - name: dashboard
+    description: Dashboard summaries
+  - name: audit
+    description: Audit / transaction logs
+  - name: history
+    description: Progress history
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ── AUTH ────────────────────────────────────────────────────────────────────
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with phone number and PIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/register-pin:
+    post:
+      operationId: registerPin
+      tags: [auth]
+      summary: Register a PIN for a phone number (first-time setup)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterPinInput"
+      responses:
+        "201":
+          description: PIN registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/create-account:
+    post:
+      operationId: createAccount
+      tags: [auth]
+      summary: Create a new account — sends a temporary PIN by email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAccountInput"
+      responses:
+        "201":
+          description: Account created, temporary PIN sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateAccountResult"
+        "400":
+          description: Invalid input or email already registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/verify-temp-pin:
+    post:
+      operationId: verifyTempPin
+      tags: [auth]
+      summary: Verify the temporary PIN sent by email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyTempPinInput"
+      responses:
+        "200":
+          description: PIN verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerifyTempPinResult"
+        "400":
+          description: Invalid or expired PIN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/set-pin:
+    post:
+      operationId: setPin
+      tags: [auth]
+      summary: Set a permanent PIN after temp PIN verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetPinInput"
+      responses:
+        "200":
+          description: PIN set, account activated, user logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+        "400":
+          description: Invalid request or PINs do not match
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/resend-pin:
+    post:
+      operationId: resendPin
+      tags: [auth]
+      summary: Resend the temporary PIN email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResendPinInput"
+      responses:
+        "200":
+          description: PIN resent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success:
+                    type: boolean
+        "400":
+          description: Account not found or already active
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── ZONES ───────────────────────────────────────────────────────────────────
+  /zones:
+    get:
+      operationId: listZones
+      tags: [zones]
+      summary: List all zones
+      responses:
+        "200":
+          description: List of zones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Zone"
+    post:
+      operationId: createZone
+      tags: [zones]
+      summary: Create a new zone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ZoneInput"
+      responses:
+        "201":
+          description: Zone created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Zone"
+
+  /zones/{id}:
+    get:
+      operationId: getZone
+      tags: [zones]
+      summary: Get zone by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Zone
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Zone"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── COORDINATORS ─────────────────────────────────────────────────────────────
+  /coordinators:
+    get:
+      operationId: listCoordinators
+      tags: [coordinators]
+      summary: List all zonal coordinators
+      responses:
+        "200":
+          description: List of coordinators
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Coordinator"
+    post:
+      operationId: createCoordinator
+      tags: [coordinators]
+      summary: Create a new zonal coordinator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CoordinatorInput"
+      responses:
+        "201":
+          description: Coordinator created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Coordinator"
+
+  /coordinators/{id}:
+    get:
+      operationId: getCoordinator
+      tags: [coordinators]
+      summary: Get coordinator by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Coordinator
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Coordinator"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /coordinators/{id}/stats:
+    get:
+      operationId: getCoordinatorStats
+      tags: [coordinators]
+      summary: Get coordinator performance stats
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Coordinator stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoordinatorStats"
+
+  # ── TRAINERS ─────────────────────────────────────────────────────────────────
+  /trainers:
+    get:
+      operationId: listTrainers
+      tags: [trainers]
+      summary: List all trainers, optionally filter by zoneId
+      parameters:
+        - name: zoneId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of trainers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Trainer"
+    post:
+      operationId: createTrainer
+      tags: [trainers]
+      summary: Create a new trainer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrainerInput"
+      responses:
+        "201":
+          description: Trainer created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trainer"
+
+  /trainers/{id}:
+    get:
+      operationId: getTrainer
+      tags: [trainers]
+      summary: Get trainer by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trainer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trainer"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /trainers/{id}/stats:
+    get:
+      operationId: getTrainerStats
+      tags: [trainers]
+      summary: Get trainer stats (students, courses, completion)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trainer stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainerStats"
+
+  # ── STUDENTS ─────────────────────────────────────────────────────────────────
+  /students:
+    get:
+      operationId: listStudents
+      tags: [students]
+      summary: List students with optional filters
+      parameters:
+        - name: trainerId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: zoneId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: courseId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of students
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Student"
+    post:
+      operationId: createStudent
+      tags: [students]
+      summary: Register a new student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentInput"
+      responses:
+        "201":
+          description: Student created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+
+  /students/{id}:
+    get:
+      operationId: getStudent
+      tags: [students]
+      summary: Get student by ID with full details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Student with details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /students/{id}/progress:
+    get:
+      operationId: getStudentProgress
+      tags: [students]
+      summary: Get complete progress for a student
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Student progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentProgress"
+
+  # ── COURSES ──────────────────────────────────────────────────────────────────
+  /courses:
+    get:
+      operationId: listCourses
+      tags: [courses]
+      summary: List all courses
+      responses:
+        "200":
+          description: List of courses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Course"
+    post:
+      operationId: createCourse
+      tags: [courses]
+      summary: Create a new course
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CourseInput"
+      responses:
+        "201":
+          description: Course created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+
+  /courses/{id}:
+    get:
+      operationId: getCourse
+      tags: [courses]
+      summary: Get course with full hierarchy (units, chapters, modules)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Course with hierarchy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CourseDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── LOCATIONS ─────────────────────────────────────────────────────────────────
+  /locations:
+    get:
+      operationId: listLocations
+      tags: [locations]
+      summary: List all centres/locations
+      parameters:
+        - name: zoneId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of locations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Location"
+    post:
+      operationId: createLocation
+      tags: [locations]
+      summary: Create a new centre/location
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LocationInput"
+      responses:
+        "201":
+          description: Location created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Location"
+
+  # ── PROGRESS / RATINGS ───────────────────────────────────────────────────────
+  /progress:
+    get:
+      operationId: listProgress
+      tags: [progress]
+      summary: List progress records with filters
+      parameters:
+        - name: studentId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: trainerId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of progress records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProgressRecord"
+    post:
+      operationId: submitProgress
+      tags: [progress]
+      summary: Submit or update a rating for a student module
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProgressInput"
+      responses:
+        "201":
+          description: Progress submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProgressRecord"
+
+  # ── AUDIT LOGS ───────────────────────────────────────────────────────────────
+  /audit-logs:
+    get:
+      operationId: listAuditLogs
+      tags: [audit]
+      summary: List audit log entries with optional filters and pagination
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Free-text search across userName, action, entityType
+        - name: dateFrom
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: dateTo
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: userId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: action
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: entityType
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Paginated audit log entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditLogsResult"
+
+  # ── PROGRESS HISTORY ─────────────────────────────────────────────────────────
+  /progress-history:
+    get:
+      operationId: listProgressHistory
+      tags: [history]
+      summary: Get progress rating history for a student (optionally filtered by module)
+      parameters:
+        - name: studentId
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: moduleId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Progress history records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProgressHistoryRecord"
+
+  # ── DASHBOARD ─────────────────────────────────────────────────────────────────
+  /dashboard/management:
+    get:
+      operationId: getManagementDashboard
+      tags: [dashboard]
+      summary: Overall management dashboard summary
+      responses:
+        "200":
+          description: Management dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementDashboard"
+
+  /dashboard/trainer/{id}:
+    get:
+      operationId: getTrainerDashboard
+      tags: [dashboard]
+      summary: Trainer-specific dashboard summary
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trainer dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainerDashboard"
+
+  /dashboard/coordinator/{id}:
+    get:
+      operationId: getCoordinatorDashboard
+      tags: [dashboard]
+      summary: Coordinator-specific dashboard summary
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Coordinator dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoordinatorDashboard"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    # AUTH
+    LoginInput:
+      type: object
+      required: [pin]
+      properties:
+        phone:
+          type: string
+          description: Indian phone number (10 digits) — legacy phone login
+        email:
+          type: string
+          description: Email address — for email-based login
+        pin:
+          type: string
+          description: 4-digit PIN
+
+    RegisterPinInput:
+      type: object
+      required: [phone, pin, role]
+      properties:
+        phone:
+          type: string
+        pin:
+          type: string
+        role:
+          type: string
+          enum: [management, coordinator, trainer, student]
+        entityId:
+          type: ["integer", "null"]
+          description: ID of the trainer/coordinator/student this user maps to
+
+    AuthResult:
+      type: object
+      required: [success, role, userId]
+      properties:
+        success:
+          type: boolean
+        role:
+          type: string
+          enum: [management, coordinator, trainer, student]
+        userId:
+          type: integer
+        entityId:
+          type: ["integer", "null"]
+          description: ID of the linked entity (trainer, coordinator, student)
+        name:
+          type: ["string", "null"]
+
+    # ZONE
+    Zone:
+      type: object
+      required: [id, name, description]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+
+    ZoneInput:
+      type: object
+      required: [name, description]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+
+    # COORDINATOR
+    Coordinator:
+      type: object
+      required: [id, name, zoneId, zoneName]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: ["string", "null"]
+        zoneId:
+          type: integer
+        zoneName:
+          type: string
+
+    CoordinatorInput:
+      type: object
+      required: [name, zoneId]
+      properties:
+        name:
+          type: string
+        phone:
+          type: ["string", "null"]
+        zoneId:
+          type: integer
+
+    CoordinatorStats:
+      type: object
+      required: [coordinatorId, name, zoneName, centreCount, trainerCount, studentCount, completionRate]
+      properties:
+        coordinatorId:
+          type: integer
+        name:
+          type: string
+        zoneName:
+          type: string
+        centreCount:
+          type: integer
+        trainerCount:
+          type: integer
+        studentCount:
+          type: integer
+        completionRate:
+          type: number
+
+    # TRAINER
+    Trainer:
+      type: object
+      required: [id, name, zoneId, zoneName, studentCount]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: ["string", "null"]
+        zoneId:
+          type: integer
+        zoneName:
+          type: string
+        centreName:
+          type: ["string", "null"]
+        studentCount:
+          type: integer
+
+    TrainerInput:
+      type: object
+      required: [name, zoneId]
+      properties:
+        name:
+          type: string
+        phone:
+          type: ["string", "null"]
+        zoneId:
+          type: integer
+        centreName:
+          type: ["string", "null"]
+
+    TrainerStats:
+      type: object
+      required: [trainerId, name, studentCount, completionRate]
+      properties:
+        trainerId:
+          type: integer
+        name:
+          type: string
+        studentCount:
+          type: integer
+        completionRate:
+          type: number
+
+    # STUDENT
+    Student:
+      type: object
+      required: [id, name, phone, courseId, courseName]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: ["string", "null"]
+        phone:
+          type: string
+        courseId:
+          type: integer
+        courseName:
+          type: string
+        timing:
+          type: ["string", "null"]
+        centreName:
+          type: ["string", "null"]
+        trainerId:
+          type: ["integer", "null"]
+        trainerName:
+          type: ["string", "null"]
+        zoneId:
+          type: ["integer", "null"]
+        zoneName:
+          type: ["string", "null"]
+
+    StudentInput:
+      type: object
+      required: [name, phone, courseId]
+      properties:
+        name:
+          type: string
+        email:
+          type: ["string", "null"]
+        phone:
+          type: string
+        courseId:
+          type: integer
+        timing:
+          type: ["string", "null"]
+        centreName:
+          type: ["string", "null"]
+        trainerId:
+          type: ["integer", "null"]
+
+    StudentDetail:
+      type: object
+      required: [id, name, phone, courseId, courseName]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: ["string", "null"]
+        phone:
+          type: string
+        courseId:
+          type: integer
+        courseName:
+          type: string
+        courseSyllabus:
+          type: ["string", "null"]
+        timing:
+          type: ["string", "null"]
+        centreName:
+          type: ["string", "null"]
+        trainerId:
+          type: ["integer", "null"]
+        trainerName:
+          type: ["string", "null"]
+        zoneId:
+          type: ["integer", "null"]
+        zoneName:
+          type: ["string", "null"]
+
+    ModuleProgressItem:
+      type: object
+      required: [moduleId, moduleName, rating]
+      properties:
+        moduleId:
+          type: integer
+        moduleName:
+          type: string
+        rating:
+          type: ["string", "null"]
+        comments:
+          type: ["string", "null"]
+        trainerId:
+          type: ["integer", "null"]
+        submittedAt:
+          type: ["string", "null"]
+        updatedAt:
+          type: ["string", "null"]
+
+    ChapterProgressItem:
+      type: object
+      required: [chapterId, chapterName, modules]
+      properties:
+        chapterId:
+          type: integer
+        chapterName:
+          type: string
+        modules:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModuleProgressItem"
+
+    UnitProgressItem:
+      type: object
+      required: [unitId, unitName, chapters]
+      properties:
+        unitId:
+          type: integer
+        unitName:
+          type: string
+        chapters:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChapterProgressItem"
+
+    StudentBasicInfo:
+      type: object
+      required: [id, name, phone, courseName]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        courseName:
+          type: string
+        timing:
+          type: ["string", "null"]
+        centreName:
+          type: ["string", "null"]
+
+    StudentProgress:
+      type: object
+      required: [student, completionRate, completedModules, totalModules, units]
+      properties:
+        student:
+          $ref: "#/components/schemas/StudentBasicInfo"
+        completionRate:
+          type: integer
+        completedModules:
+          type: integer
+        totalModules:
+          type: integer
+        units:
+          type: array
+          items:
+            $ref: "#/components/schemas/UnitProgressItem"
+
+    # COURSE HIERARCHY
+    Course:
+      type: object
+      required: [id, name, syllabus]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        syllabus:
+          type: string
+
+    CourseInput:
+      type: object
+      required: [name, syllabus]
+      properties:
+        name:
+          type: string
+        syllabus:
+          type: string
+
+    CourseDetail:
+      type: object
+      required: [id, name, syllabus, units]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        syllabus:
+          type: string
+        units:
+          type: array
+          items:
+            $ref: "#/components/schemas/Unit"
+
+    Unit:
+      type: object
+      required: [id, name, orderIndex, chapters]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        orderIndex:
+          type: integer
+        chapters:
+          type: array
+          items:
+            $ref: "#/components/schemas/Chapter"
+
+    Chapter:
+      type: object
+      required: [id, name, orderIndex, modules]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        orderIndex:
+          type: integer
+        modules:
+          type: array
+          items:
+            $ref: "#/components/schemas/Module"
+
+    Module:
+      type: object
+      required: [id, name, orderIndex]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        orderIndex:
+          type: integer
+
+    # LOCATION
+    Location:
+      type: object
+      required: [id, centreName, zoneId, zoneName]
+      properties:
+        id:
+          type: integer
+        centreName:
+          type: string
+        zoneId:
+          type: integer
+        zoneName:
+          type: string
+        coordinatorId:
+          type: ["integer", "null"]
+        coordinatorName:
+          type: ["string", "null"]
+
+    LocationInput:
+      type: object
+      required: [centreName, zoneId]
+      properties:
+        centreName:
+          type: string
+        zoneId:
+          type: integer
+        coordinatorId:
+          type: ["integer", "null"]
+
+    # PROGRESS / RATINGS
+    ProgressRecord:
+      type: object
+      required: [id, studentId, studentName, moduleId, moduleName, chapterName, unitName, rating, submittedAt]
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        studentName:
+          type: string
+        trainerId:
+          type: ["integer", "null"]
+        trainerName:
+          type: ["string", "null"]
+        moduleId:
+          type: integer
+        moduleName:
+          type: string
+        chapterName:
+          type: string
+        unitName:
+          type: string
+        rating:
+          type: string
+          enum: [totally_dependent, physical_prompting, verbal_prompting, clueing, independent]
+        comments:
+          type: ["string", "null"]
+          description: Optional trainer comments (max 500 chars)
+        submittedAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    ProgressInput:
+      type: object
+      required: [studentId, moduleId, rating]
+      properties:
+        studentId:
+          type: integer
+        moduleId:
+          type: integer
+        trainerId:
+          type: ["integer", "null"]
+        rating:
+          type: string
+          enum: [totally_dependent, physical_prompting, verbal_prompting, clueing, independent]
+        comments:
+          type: ["string", "null"]
+          description: Optional comments (max 500 chars)
+
+    # DASHBOARDS
+    ManagementDashboard:
+      type: object
+      required: [totalStudents, totalTrainers, totalCoordinators, totalZones, totalLocations, overallCompletionRate, ratingDistribution, totalRatings, ratingsToday, pendingModules, recentlyUpdated, recentAuditLogs]
+      properties:
+        totalStudents:
+          type: integer
+        totalTrainers:
+          type: integer
+        totalCoordinators:
+          type: integer
+        totalZones:
+          type: integer
+        totalLocations:
+          type: integer
+        overallCompletionRate:
+          type: number
+        ratingDistribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/RatingCount"
+        totalRatings:
+          type: integer
+        ratingsToday:
+          type: integer
+        pendingModules:
+          type: integer
+        recentlyUpdated:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProgressRecord"
+        recentAuditLogs:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLog"
+
+    TrainerDashboard:
+      type: object
+      required: [trainerId, trainerName, zoneName, studentCount, completionRate, ratingDistribution, recentActivity]
+      properties:
+        trainerId:
+          type: integer
+        trainerName:
+          type: string
+        zoneName:
+          type: string
+        studentCount:
+          type: integer
+        completionRate:
+          type: number
+        ratingDistribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/RatingCount"
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProgressRecord"
+
+    CoordinatorDashboard:
+      type: object
+      required: [coordinatorId, coordinatorName, zoneName, centreCount, trainerCount, studentCount, completionRate, trainerPerformance]
+      properties:
+        coordinatorId:
+          type: integer
+        coordinatorName:
+          type: string
+        zoneName:
+          type: string
+        centreCount:
+          type: integer
+        trainerCount:
+          type: integer
+        studentCount:
+          type: integer
+        completionRate:
+          type: number
+        trainerPerformance:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrainerStats"
+
+    RatingCount:
+      type: object
+      required: [rating, count]
+      properties:
+        rating:
+          type: string
+        count:
+          type: integer
+
+    # ACCOUNT CREATION
+    CreateAccountInput:
+      type: object
+      required: [email, phone, role]
+      properties:
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          description: Indian phone number (10 digits)
+        role:
+          type: string
+          enum: [management, coordinator, trainer, student]
+
+    CreateAccountResult:
+      type: object
+      required: [success, email]
+      properties:
+        success:
+          type: boolean
+        email:
+          type: string
+
+    VerifyTempPinInput:
+      type: object
+      required: [email, pin]
+      properties:
+        email:
+          type: string
+        pin:
+          type: string
+          description: 4-digit temporary PIN received by email
+
+    VerifyTempPinResult:
+      type: object
+      required: [success, email]
+      properties:
+        success:
+          type: boolean
+        email:
+          type: string
+
+    SetPinInput:
+      type: object
+      required: [email, newPin, confirmPin]
+      properties:
+        email:
+          type: string
+        newPin:
+          type: string
+          description: New 4-digit permanent PIN
+        confirmPin:
+          type: string
+          description: Must match newPin
+
+    ResendPinInput:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+
+    # USER (internal)
+    AppUser:
+      type: object
+      required: [id, phone, role]
+      properties:
+        id:
+          type: integer
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [management, coordinator, trainer, student]
+        entityId:
+          type: ["integer", "null"]
+
+    # AUDIT LOG
+    AuditLog:
+      type: object
+      required: [id, timestamp, action, entityType]
+      properties:
+        id:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+        userId:
+          type: ["integer", "null"]
+        userName:
+          type: ["string", "null"]
+        role:
+          type: ["string", "null"]
+        action:
+          type: string
+          description: e.g. login, progress_update, student_created
+        entityType:
+          type: string
+          description: e.g. progress, student, trainer, user
+        entityId:
+          type: ["integer", "null"]
+        oldValue:
+          type: ["string", "null"]
+          description: JSON-serialised previous state
+        newValue:
+          type: ["string", "null"]
+          description: JSON-serialised new state
+        ipAddress:
+          type: ["string", "null"]
+
+    AuditLogsResult:
+      type: object
+      required: [items, total, page, pageSize]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLog"
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+
+    # PROGRESS HISTORY
+    ProgressHistoryRecord:
+      type: object
+      required: [id, studentId, moduleId, moduleName, newRating, changedAt]
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        courseId:
+          type: ["integer", "null"]
+        unitId:
+          type: ["integer", "null"]
+        unitName:
+          type: ["string", "null"]
+        chapterId:
+          type: ["integer", "null"]
+        chapterName:
+          type: ["string", "null"]
+        moduleId:
+          type: integer
+        moduleName:
+          type: string
+        previousRating:
+          type: ["string", "null"]
+        newRating:
+          type: string
+        previousComment:
+          type: ["string", "null"]
+        newComment:
+          type: ["string", "null"]
+        changedBy:
+          type: ["integer", "null"]
+        changedByName:
+          type: ["string", "null"]
+        changedAt:
+          type: string
+          format: date-time

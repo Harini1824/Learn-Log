@@ -1,0 +1,121 @@
+Create Firestore seed data for the course "Web Accessibility Testing".
+
+Course:
+Web Accessibility Testing
+
+Unit 1: Introduction to Accessibility
+Chapter 1: Understanding Digital Accessibility
+Modules:
+
+* Overview of Digital Accessibility
+* Types of Disabilities
+* Importance of Accessible Digital Content
+
+Chapter 2: Accessibility Standards and Guidelines
+Modules:
+
+* Overview of WCAG
+* WCAG Principles (POUR)
+* Section 508 and ADA Standards
+
+Unit 2: Basic Skills
+Chapter 1: Introduction to Assistive Technologies
+Modules:
+
+* Introduction to Screen Readers (JAWS, NVDA)
+* Magnifiers and Assistive Tools
+* Navigation Using Assistive Technologies
+
+Chapter 2: Basic Computer and Internet Skills
+Modules:
+
+* Computer Operations and Keyboard Shortcuts
+* Internet Browsing Techniques
+* MS Office Applications
+
+Unit 3: Intermediate Accessibility Testing
+Chapter 1: Understanding HTML and ARIA
+Modules:
+
+* Introduction to HTML
+* ARIA Roles
+* ARIA Properties and Accessibility Enhancement
+
+Chapter 2: Testing with Screen Readers
+Modules:
+
+* JAWS Training
+* NVDA Training
+* Reporting Accessibility Issues
+
+Unit 4: Advanced Accessibility Testing
+Chapter 1: Automated Accessibility Testing Tools
+Modules:
+
+* Axe
+* WAVE
+* Lighthouse
+
+Chapter 2: Manual Accessibility Testing Techniques
+Modules:
+
+* Manual Testing Techniques
+* Creating Accessibility Test Cases
+* Manual Testing Practice
+
+Unit 5: Reporting and Compliance
+Chapter 1: Creating Accessibility Reports
+Modules:
+
+* Accessibility Reporting Techniques
+* Documenting Issues and Recommendations
+* Accessibility Report Management Tools
+
+Chapter 2: Ensuring Compliance with Accessibility Standards
+Modules:
+
+* WCAG Compliance Checklists
+* Section 508 and ADA Compliance
+* Continuous Compliance Monitoring
+
+Unit 6: Life Skills and Final Assessments
+Chapter 1: Life Skills Development
+Modules:
+
+* Creative Thinking and Problem Solving
+* Decision Making and Self Awareness
+* Interpersonal Skills and Stress Management
+
+Chapter 2: Final Assessments and Role Simulations
+Modules:
+
+* Theory Assessments
+* Practical Assessments
+* Role Simulations
+
+Requirements:
+
+1. Create records in Firestore collections:
+
+   * courses
+   * units
+   * chapters
+   * modules
+
+2. Maintain parent-child relationships:
+   course → units → chapters → modules
+
+3. Generate unique IDs.
+
+4. Add displayOrder fields for proper sorting.
+
+5. Add estimatedHours where available.
+
+6. Create a seed script that can be run multiple times without creating duplicates.
+
+7. After seeding, print the total count of:
+
+   * courses
+   * units
+   * chapters
+   * modules

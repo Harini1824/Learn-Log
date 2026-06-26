@@ -1,0 +1,126 @@
+Implement the following enhancements using Firestore.
+
+1. Audit Log / Transaction Log
+
+Create a new Firestore collection: auditLogs
+
+Every create, update, delete, login, logout, PIN reset, progress update, rating update, course update, student update, trainer update, coordinator update, and user creation must create an audit log record.
+
+Store:
+
+* timestamp
+* userId
+* userName
+* role
+* action
+* entityType
+* entityId
+* oldValue
+* newValue
+* ipAddress (if available)
+
+Create an Audit Logs page for management users.
+
+Features:
+
+* Search
+* Filter by date
+* Filter by user
+* Filter by action
+* Filter by entity type
+* Pagination
+
+2. Cascading Unit → Chapter → Module Selection
+
+In the Progress page:
+
+When a course is selected:
+
+* Show Units dropdown
+
+When a Unit is selected:
+
+* Automatically load and display all Chapters under that Unit
+
+When a Chapter is selected:
+
+* Automatically load and display all Modules under that Chapter
+
+Provide:
+Course → Unit → Chapter → Module hierarchy
+
+Allow:
+
+* View existing ratings
+* Create ratings
+* Update ratings
+
+Changes must immediately update Firestore.
+
+Display:
+Unit Name
+Chapter Name
+Module Name
+Current Rating
+
+3. Rating Comments
+
+For every rating entry:
+
+Add:
+
+* Rating value
+* Comments textarea
+
+Store in Firestore:
+
+{
+rating: number,
+comments: string,
+updatedAt: timestamp,
+updatedBy: userId
+}
+
+Requirements:
+
+* Comments are optional
+* Max length 500 characters
+* Show comments when viewing progress
+* Allow editing comments during rating updates
+
+4. Progress History
+
+For every rating update:
+
+Create a record in a new collection:
+
+progressHistory
+
+Store:
+
+* studentId
+* courseId
+* unitId
+* chapterId
+* moduleId
+* previousRating
+* newRating
+* previousComment
+* newComment
+* changedBy
+* changedAt
+
+Management users can view rating history.
+
+5. Dashboard Enhancements
+
+Add:
+
+* Total ratings submitted
+* Ratings updated today
+* Pending modules
+* Recently updated modules
+* Recent audit log entries
+
+Keep all existing Firestore collections and dashboards working.
+After implementation, list all modified files and explain how to test each feature.

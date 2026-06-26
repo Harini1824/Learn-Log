@@ -1,0 +1,3 @@
+- [Orval hook signatures](orval-hook-signatures.md) — generated hooks take positional `id` not object params; `enabled` goes in `{ query: { enabled } }` but requires full `UseQueryOptions`, so use `id ?? 0` pattern instead.
+- [Student progress response shape](student-progress-shape.md) — `/api/students/:id/progress` returns `{ student, completionRate, completedModules, totalModules, units[] }` hierarchy, not flat `ratings[]`.
+- [API param naming](api-param-naming.md) — `ListStudentsParams` uses `search` (not `q`); no `coordinatorId` filter on students/trainers list endpoints.
